@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biyokültür Ekologları | Dijital Arşiv</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #1b5e20;
+            --accent: #8bc34a;
+            --bg-light: #f4fbf4;
+            --glass: rgba(255, 255, 255, 0.92);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { height: 100%; font-family: 'Poppins', sans-serif; background: var(--bg-light); color: #333; overflow-x: hidden; }
+
+        /* GİRİŞ EKRANI - YENİDEN YAPILANDIRILMIŞ */
+        #intro-screen {
+            height: 100vh; width: 100%;
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.5)), 
+                        url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1920&q=80'); 
+            background-size: cover; background-position: center;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center; position: fixed; z-index: 3000;
+            transition: transform 1.2s cubic-bezier(0.85, 0, 0.15, 1);
+            padding: 20px;
+        }
+
+        #intro-screen h1 { 
+            font-size: clamp(2rem, 6vw, 4rem); 
+            font-weight: 600; 
+            letter-spacing: 1px; 
+            margin-bottom: 10px; 
+            line-height: 1.2;
+            max-width: 1000px;
+            text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        #intro-screen .sub-title { 
+            font-size: clamp(1.5rem, 4vw, 2.5rem); 
+            text-transform: uppercase; 
+            letter-spacing: 4px; 
+            margin-bottom: 40px; 
+            color: var(--accent);
+            font-weight: 300;
+        }
+
+        /* ÇALIŞMA ALANLARI VURGUSU */
+        .scope-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .scope-tag {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .scope-tag:hover {
+            background: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .explore-btn {
+            padding: 22px 70px; font-size: 1.4rem; background: var(--primary); color: white;
+            border: none; border-radius: 60px; cursor: pointer; transition: 0.4s;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4); font-weight: 600; text-transform: uppercase;
+        }
+        .explore-btn:hover { background: var(--secondary); transform: scale(1.08); }
+
+        /* ANAHTARLAR (DASHBOARD) */
+        #selection-page {
+            min-height: 100vh; width: 100%; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            background-image: url("https://www.transparenttextures.com/patterns/leaf.png");
+            padding: 60px 20px;
+        }
+        .keys-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px; width: 100%; max-width: 1200px;
+        }
+        .key-card {
+            background: var(--glass); backdrop-filter: blur(10px);
+            padding: 40px 20px; border-radius: 30px; text-align: center;
+            cursor: pointer; transition: 0.4s ease; border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .key-card:hover { transform: translateY(-15px); background: var(--primary); color: white; }
+        .key-card.dictionary-key { border: 2px solid var(--accent); }
+        .key-card .icon { font-size: 3.5rem; display: block; margin-bottom: 15px; }
+
+        /* İÇERİK GÖRÜNTÜLEYİCİ */
+        #content-viewer { display: none; padding: 40px 20px; min-height: 100vh; }
+        .content-container { 
+            max-width: 1100px; margin: 0 auto; background: white; 
+            border-radius: 40px; padding: 50px; box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .back-btn {
+            position: absolute; top: 20px; left: 20px;
+            padding: 10px 20px; background: #eee; border-radius: 20px;
+            cursor: pointer; font-size: 0.9rem; transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--primary); color: white; }
+
+        .text-content { line-height: 1.8; font-size: 1.1rem; color: #444; }
+        .text-content h2 { color: var(--primary); margin-bottom: 25px; font-size: 2.2rem; border-left: 8px solid var(--accent); padding-left: 15px; }
+        .text-content p { margin-bottom: 20px; text-align: justify; }
+        .text-content b { color: var(--secondary); }
+
+        /* VERI TABANI GÖMME */
+        .embed-wrapper { width: 100%; height: 70vh; border: 3px solid var(--primary); border-radius: 25px; overflow: hidden; background: #fff; }
+        .embed-wrapper iframe { width: 100%; height: 100%; border: none; }
+
+        /* SÖZLÜK TASARIMI */
+        .dictionary-item { 
+            background: #f9f9f9; padding: 25px; border-radius: 20px; 
+            margin-bottom: 15px; border-left: 5px solid var(--accent); 
+            position: relative; transition: 0.3s; 
+        }
+        .dictionary-item h3 { color: var(--secondary); margin-bottom: 8px; padding-right: 40px; }
+        .dictionary-item p { font-size: 1rem; color: #555; line-height: 1.6; }
+        
+        .delete-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: #ffebee; color: #c62828; border: none;
+            width: 32px; height: 32px; border-radius: 50%;
+            cursor: pointer; font-size: 1.2rem; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s;
+        }
+        .delete-btn:hover { background: #c62828; color: white; }
+
+        .dictionary-empty { text-align: center; padding: 60px; color: #999; font-style: italic; }
+
+        .data-card { background: #f9f9f9; padding: 25px; border-radius: 25px; margin-bottom: 20px; border-left: 8px solid var(--primary); }
+        
+        /* DOĞA TANIKLIĞI */
+        .envelope-box { background: #fff8e1; border: 3px dashed #ffb300; border-radius: 30px; padding: 50px; text-align: center; margin-top: 20px; }
+        .plus-btn { width: 80px; height: 80px; background: var(--primary); color: white; border: none; border-radius: 50%; font-size: 3.5rem; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+
+        /* MODAL */
+        #witness-modal { display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 75vh; background: white; z-index: 4000; border-radius: 50px 50px 0 0; padding: 40px; box-shadow: 0 -20px 60px rgba(0,0,0,0.2); overflow-y: auto; }
+        .modal-close { float: right; font-size: 2.5rem; cursor: pointer; color: #999; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--secondary); }
+        .input-group input, .input-group textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #ddd; font-family: inherit; }
+
+        .slide-up { transform: translateY(-100%); }
+    </style>
+</head>
+<body>
+
+    <div id="intro-screen">
+        <h1>Anadolu’nun Dijital Ekolojik Belleği:<br>Ninni ve Ağıtlarda Saklı Biyoçeşitlilik</h1>
+        <div class="sub-title">Biyokültür Ekologları</div>
+        
+        <div class="scope-container">
+            <div class="scope-tag">DİJİTAL ARŞİV</div>
+            <div class="scope-tag">BİYOKÜLTÜREL HARİTA</div>
+            <div class="scope-tag">VERİ TABANI</div>
+            <div class="scope-tag">e-KİTAP</div>
+        </div>
+
+        <button class="explore-btn" onclick="goToKeys()">Projeyi Keşfet</button>
+    </div>
+
+    <div id="selection-page">
+        <h2 style="color: var(--secondary); margin-bottom: 40px; letter-spacing: 1px;">PROJE PORTAL</h2>
+        <div class="keys-grid">
+            <div class="key-card" onclick="openView('amac')"><span class="icon">🎯</span><h2>Projenin Amacı</h2></div>
+            <div class="key-card" onclick="openView('onem')"><span class="icon">💎</span><h2>Projenin Önemi</h2></div>
+            <div class="key-card" onclick="openView('neden')"><span class="icon">❓</span><h2>Neden Bu Kitap?</h2></div>
+            <div class="key-card" onclick="openView('bellek')"><span class="icon">🎙️</span><h2>Belleğin Sesi</h2></div>
+            <div class="key-card" onclick="openView('ekitap')"><span class="icon">📖</span><h2>e-Kitap</h2></div>
+            <div class="key-card" onclick="openView('map')"><span class="icon">🗺️</span><h2>Dijital Harita</h2></div>
+            <div class="key-card" onclick="openView('db')"><span class="icon">📊</span><h2>Veri Tabanı</h2></div>
+            <div class="key-card" onclick="openView('daily')"><span class="icon">🌿</span><h2>Günün Canlısı</h2></div>
+            <div class="key-card" onclick="openView('witness')"><span class="icon">✉️</span><h2>Doğa Tanıklığı</h2></div>
+            <div class="key-card dictionary-key" onclick="openView('dictionary')"><span class="icon">📚</span><h2>Doğa Sözlüğü</h2></div>
+        </div>
+    </div>
+
+    <div id="content-viewer">
+        <div class="content-container">
+            <div class="back-btn" onclick="backToKeys()">⬅ Ana Menü</div>
+            
+            <div id="view-amac" class="text-content" style="display:none;">
+                <h2>Projenin Amacı</h2>
+                <p>Bu projenin temel odağı, Anadolu'nun sözlü gelenekleri olan <b>ninni ve ağıtları</b> ekolojik birer veri kaynağı olarak yeniden okumaktır. Amacımız, sadece melodik yapıları değil, bu metinlerin satır aralarında gizlenmiş olan <b>bitki ve hayvan türlerini</b> tespit ederek biyolojik çeşitliliğimizi kayıt altına almaktır.</p>
+                <p>Kuşaklar arası aktarılan bu eserlerin, yerel türlerin (endemik bitkiler, göçmen kuşlar vb.) geçmişteki varlıkları ve yaşam alanları hakkında sağladığı ipuçlarını birer <b>dijital kanıta</b> dönüştürmeyi hedefliyoruz. Bu sayede, somut olmayan kültürel mirasımız ile somut doğa mirasımızı birleştiren bir köprü kuruyoruz.</p>
+            </div>
+
+            <div id="view-onem" class="text-content" style="display:none;">
+                <h2>Projenin Önemi</h2>
+                <p>Geleneksel bilgi, modern bilimin bazen gözden kaçırdığı <b>yerel ekolojik hafızayı</b> barındırır. Bu projenin önemi, literatürde genellikle sadece edebi veya müzikal açıdan incelenen ninnileri, <b>CBS (Coğrafi Bilgi Sistemleri)</b> ve modern veri tabanlarıyla birleştirerek "Biyokültürel Ekoloji" alanında öncü bir model sunmasıdır.</p>
+                <p>Kaybolmaya yüz tutmuş yerel isimleri, canlının halk arasındaki kullanım özelliklerini ve ekolojik rollerini belgelemek, gelecekteki <b>koruma biyolojisi</b> çalışmaları için eşsiz birer tarihi referans noktası oluşturacaktır. Anadolu’nun biyolojik zenginliğini kendi öz sesiyle dünyaya anlatmak en büyük gayemizdir.</p>
+            </div>
+
+            <div id="view-neden" class="text-content" style="display:none;">
+                <h2>Neden Bu Kitap?</h2>
+                <p>Bu kitap sadece bir derleme değil, bir <b>farkındalık manifestosudur</b>. Teknolojinin hızıyla doğadan kopan modern insana, ninnilerinde saklı olan "yeşil mirası" hatırlatmak için yazılmıştır. Akademik verileri, herkesin anlayabileceği görsel bir hikaye anlatıcılığıyla sunarak doğa sevgisini bilimsel bir tabana oturtur.</p>
+                <p>Okuyucuyu, bir ninnide geçen çiçeğin peşine düşmeye veya bir ağıttaki kuşun kanat çırpışını hayal etmeye davet eden bu eser; ekolojiyi dört duvar arasından çıkarıp <b>beşiklerin başucuna</b> ve Anadolu'nun kadim topraklarına geri taşır.</p>
+            </div>
+
+            <div id="view-bellek" class="text-content" style="display:none;">
+                <h2>Belleğin Sesi</h2>
+                <p>Bellek, sadece yaşanmışlıkları değil, yaşanılan coğrafyayı da saklar. <b>"Belleğin Sesi"</b>, Anadolu insanının doğayla kurduğu binlerce yıllık simbiyotik ilişkinin yankısıdır. Bir annenin yavrusuna söylediği ninnide, o günün iklimi, bahçesindeki meyvesi ve göğündeki kuşu gizlidir.</p>
+                <p>Bu bölümde, ninnilerin ve ağıtların sessiz şahitleri olan bitki ve hayvanların, toplumun ortak hafızasındaki yerini inceliyoruz. Sesle başlayan yolculuğun, bir <b>ekolojik tanıklığa</b> nasıl dönüştüğünü; kelimelerin nasıl tohumlara, melodilerin nasıl ormanlara dönüştüğünü keşfediyoruz.</p>
+            </div>
+
+            <div id="view-db" style="display:none;">
+                <h2 style="color:var(--primary); margin-bottom:20px;">Dijital Tür Veri Tabanı</h2>
+                <div class="embed-wrapper">
+                    <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vTJCeqZWJSo5g-dd9FKQqtCfe6GTYHjY9NIc_QZH9eCRrtvamrRsNzpFOV1U00QfoailbouMhEyhLgX/pubhtml?widget=true&amp;headers=false"></iframe>
+                </div>
+            </div>
+
+            <div id="view-daily" style="display:none;">
+                <h2 style="color:var(--primary); margin-bottom:30px; text-align:center;">Bugünün Ekolojik Mirası</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px;">
+                    <div class="data-card" style="text-align:center;"><span style="font-size:3rem;">🐾</span><h3>Günün Hayvanı</h3><div id="daily-animal" style="font-size:1.4rem; font-weight:600;"></div></div>
+                    <div class="data-card" style="text-align:center;"><span style="font-size:3rem;">🌱</span><h3>Günün Bitkisi</h3><div id="daily-plant" style="font-size:1.4rem; font-weight:600;"></div></div>
+                </div>
+            </div>
+
+            <div id="view-dictionary" style="display:none;">
+                <h2 style="color:var(--primary); margin-bottom:20px;">Toplumun Doğa Sözlüğü</h2>
+                <p style="margin-bottom:25px; color:#666;">Listedeki öğeleri yanlarındaki çarpı (×) butonuna basarak silebilirsiniz.</p>
+                <div id="dictionary-list"></div>
+            </div>
+
+            <div id="view-witness" style="display:none;">
+                <div class="envelope-box">
+                    <p style="font-style:italic; margin-bottom:30px; font-size:1.2rem;">"Buraya eklediğiniz her canlı, Doğa Sözlüğü'ne otomatik olarak kaydedilir."</p>
+                    <button class="plus-btn" onclick="openModal()">+</button>
+                </div>
+            </div>
+
+            <div id="view-ekitap" style="display:none;">
+                <h2 style="color:var(--primary); margin-bottom:20px;">e-Kitap: Biyokültür Arşivi</h2>
+                <div class="embed-wrapper">
+                    <iframe src="https://www.canva.com/design/DAHBjuSFFcQ/5B9hNEgi5DgZHt50gO7a9g/view?embed"></iframe>
+                </div>
+            </div>
+            
+            <div id="view-map" style="display:none;"><h2>Dijital Biyokültür Haritası</h2><iframe src="https://ogmmateryal.eba.gov.tr/cbs/storymap/view.html?code=m1HVA-NaD6B" style="width:100%; height:600px; border:none;"></iframe></div>
+        </div>
+    </div>
+
+    <div id="witness-modal">
+        <span class="modal-close" onclick="closeModal()">×</span>
+        <h2 style="color:var(--primary); margin-bottom:30px;">Yeni Bir Kayıt Ekle</h2>
+        <div class="input-group">
+            <label>Canlı Adı</label>
+            <input type="text" id="input-canli" placeholder="Örn: Dağ Lalesi">
+        </div>
+        <div class="input-group">
+            <label>Özellikleri / Hikayesi</label>
+            <textarea id="input-hikaye" rows="4" placeholder="Canlının hikayesini yazın..."></textarea>
+        </div>
+        <button class="explore-btn" style="width:100%; border-radius:15px;" onclick="saveToDictionary()">Sözlüğe Kaydet</button>
+    </div>
+
+    <script>
+        let dictionaryData = JSON.parse(localStorage.getItem('ecologyDictionary')) || [];
+
+        function setDailyItems() {
+            const today = new Date();
+            const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+            const animalList = ["At", "Sinek", "Yılan", "Dağ Geyiği", "Manda", "Tilki"];
+            const plantList = ["Karamuk Çalısı", "Yayla Çiçeği", "Nar", "Keten", "Servi"];
+            document.getElementById('daily-animal').innerText = animalList[dayOfYear % animalList.length];
+            document.getElementById('daily-plant').innerText = plantList[dayOfYear % plantList.length];
+        }
+
+        function renderDictionary() {
+            const listContainer = document.getElementById('dictionary-list');
+            listContainer.innerHTML = '';
+            if (dictionaryData.length === 0) {
+                listContainer.innerHTML = '<div class="dictionary-empty">Henüz sözlüğe eklenmiş bir kelime bulunmuyor.</div>';
+                return;
+            }
+            dictionaryData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'dictionary-item';
+                div.innerHTML = `<button class="delete-btn" onclick="deleteItem(${index})" title="Sil">×</button><h3>${item.canli}</h3><p>${item.hikaye}</p>`;
+                listContainer.prepend(div);
+            });
+        }
+
+        function deleteItem(index) {
+            if(confirm("Bu kelimeyi sözlükten silmek istediğinize emin misiniz?")) {
+                dictionaryData.splice(index, 1);
+                localStorage.setItem('ecologyDictionary', JSON.stringify(dictionaryData));
+                renderDictionary();
+            }
+        }
+
+        function saveToDictionary() {
+            const canli = document.getElementById('input-canli').value;
+            const hikaye = document.getElementById('input-hikaye').value;
+            if(!canli || !hikaye) { alert("Lütfen tüm alanları doldurun."); return; }
+            dictionaryData.push({ canli, hikaye });
+            localStorage.setItem('ecologyDictionary', JSON.stringify(dictionaryData));
+            document.getElementById('input-canli').value = '';
+            document.getElementById('input-hikaye').value = '';
+            alert("Yeni kelime Doğa Sözlüğü'ne eklendi!");
+            closeModal();
+            renderDictionary();
+        }
+
+        function goToKeys() {
+            document.getElementById('intro-screen').classList.add('slide-up');
+            document.getElementById('selection-page').style.display = 'flex';
+            setDailyItems();
+        }
+
+        function openView(id) {
+            document.getElementById('selection-page').style.display = 'none';
+            document.getElementById('content-viewer').style.display = 'block';
+            document.querySelectorAll('.content-container > div:not(.back-btn)').forEach(d => d.style.display = 'none');
+            document.getElementById('view-' + id).style.display = 'block';
+            if(id === 'dictionary') renderDictionary();
+            window.scrollTo(0,0);
+        }
+
+        function backToKeys() {
+            document.getElementById('content-viewer').style.display = 'none';
+            document.getElementById('selection-page').style.display = 'flex';
+        }
+
+        function openModal() { document.getElementById('witness-modal').style.display = 'block'; }
+        function closeModal() { document.getElementById('witness-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>
